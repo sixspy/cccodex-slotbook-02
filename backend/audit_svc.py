@@ -22,7 +22,7 @@ def list_audit(authorization: AuthHeader = None, limit: int = 100):
 
 @router.get("/api/proof/{party_key}")
 def proof(party_key: str, authorization: AuthHeader = None):
-    """按当事人互证：占位/正式/候补是否同源可读。"""
+    """按当事人互证：占位/正式/候补/转移是否同源可读。"""
     require_user(authorization)
     with connect() as conn:
         holds = conn.execute(
@@ -34,9 +34,25 @@ def proof(party_key: str, authorization: AuthHeader = None):
         waits = conn.execute(
             "SELECT * FROM waitlist WHERE party_key=? ORDER BY id DESC", (party_key,)
         ).fetchall()
+        transfers = conn.execute(
+            """SELECT t.* FROM transfer_jobs t
+               JOIN bookings b ON b.id=t.booking_id
+               WHERE b.party_key=? ORDER BY t.id DESC""",
+            (party_key,),
+        ).fetchall()
+        trail = conn.execute(
+            """SELECT * FROM audit_trail
+               WHERE target=? AND action IN ('booking_transfer',
+                                             'transfer_double_write_deviation')
+               ORDER BY id DESC""",
+            (party_key,),
+        ).fetchall()
         return {
             "party_key": party_key,
             "holds": [dict(r) for r in holds],
             "bookings": [dict(r) for r in books],
             "waitlist": [dict(r) for r in waits],
+            "transfers": [dict(r) for r in transfers],
+            "transfer_audit": [dict(r) for r in trail],
+            "path": "A_same_transaction_double_write",
         }

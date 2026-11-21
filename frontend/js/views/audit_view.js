@@ -14,8 +14,10 @@ export const auditViewTemplate = `
     <table>
       <thead><tr><th>人</th><th>动作</th><th>目标</th><th>时</th></tr></thead>
       <tbody>
-        <tr v-for="a in audits" :key="a.id">
-          <td>{{ a.actor }}</td><td>{{ a.action }}</td><td>{{ a.target }}</td><td>{{ a.created_at }}</td>
+        <tr v-for="a in audits" :key="a.id" :class="{ err: a.action==='transfer_double_write_deviation' }">
+          <td>{{ a.actor }}</td>
+          <td>{{ a.action==='transfer_double_write_deviation' ? '转移双改偏航' : a.action }}</td>
+          <td>{{ a.target }}</td><td>{{ a.created_at }}</td>
         </tr>
       </tbody>
     </table>

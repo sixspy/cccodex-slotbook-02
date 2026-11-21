@@ -5,6 +5,7 @@ import { waitlistViewTemplate } from "./views/waitlist_view.js";
 import { confirmViewTemplate } from "./views/confirm_view.js";
 import { reconcileViewTemplate } from "./views/reconcile_view.js";
 import { auditViewTemplate } from "./views/audit_view.js";
+import { transferViewTemplate } from "./views/transfer_view.js";
 
 const { createApp, ref, onMounted } = Vue;
 
@@ -17,7 +18,7 @@ createApp({
     const err = ref("");
     const actionErr = ref("");
     const tab = ref(0);
-    const nav = ["档期盘", "占位单", "候补队列", "确认入册", "对账互证", "审计争用"];
+    const nav = ["档期盘", "占位单", "候补队列", "确认入册", "对账互证", "审计争用", "跨档转移"];
     const slots = ref([]);
     const holds = ref([]);
     const waitlist = ref([]);
@@ -28,6 +29,7 @@ createApp({
     const dash = ref({});
     const holdForm = ref({ slot_code: "S-AM-01", party_key: "P-NEW", seats: 1 });
     const confirmId = ref(1);
+    const transferForm = ref({ booking_id: 1, to_slot_code: "S-PM-02", note: "" });
 
     function logout() {
       token.value = "";
@@ -78,13 +80,21 @@ createApp({
       try { actionErr.value = ""; await api.post("/api/waitlist/promote", { wait_id: id }); await refresh(); }
       catch (e) { actionErr.value = e.message; }
     }
+    async function doTransfer() {
+      try {
+        actionErr.value = "";
+        await api.post("/api/transfer", transferForm.value);
+        await refresh();
+      } catch (e) { actionErr.value = e.message; }
+    }
 
     onMounted(() => { if (token.value) refresh(); });
 
     return {
       token, user, username, password, err, actionErr, tab, nav,
       slots, holds, waitlist, bookings, recon, audits, contention, dash,
-      holdForm, confirmId, login, logout, refresh, doHold, doConfirm, promoteWait,
+      holdForm, confirmId, transferForm, login, logout, refresh, doHold, doConfirm,
+      promoteWait, doTransfer,
     };
   },
   template: `
@@ -118,6 +128,7 @@ createApp({
       ${confirmViewTemplate}
       ${reconcileViewTemplate}
       ${auditViewTemplate}
+      ${transferViewTemplate}
     </main>
   </div>
   `,

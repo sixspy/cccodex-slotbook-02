@@ -23,7 +23,9 @@ PRODUCT_META = {
         "release",
         "transfer",
     ],
-    "stubs": ["release_slot", "transfer_booking"],
+    "stubs": ["release_slot"],
+    # 转移已按路径 A 落地：同事务释源插目标，见 docs/转移双改说明.md
+    "transfer_write_path": "A_same_transaction_double_write",
 }
 
 

@@ -22,8 +22,9 @@
 | 项 | 内容 |
 |----|------|
 | 后端模块 | db / auth / locks / slots_svc / hold_svc / confirm_svc / waitlist_svc / reconcile_svc / audit_svc / release_svc / transfer_svc |
-| 前端视图 | 档期盘 / 占位单 / 候补队列 / 确认入册 / 对账互证 / 审计争用 |
-| 空桩 | release（释放重开）、transfer（跨档迁移） |
+| 前端视图 | 档期盘 / 占位单 / 候补队列 / 确认入册 / 对账互证 / 审计争用 / 跨档转移 |
+| 空桩 | release（释放重开） |
+| 转移 | transfer：路径 A（同事务释源插目标），见 `docs/转移双改说明.md` |
 
 ## 互斥切口候选
 

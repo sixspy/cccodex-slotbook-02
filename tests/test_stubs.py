@@ -43,14 +43,19 @@ def test_release_stub():
         assert books2[0]["status"] == "已确认"
 
 
-def test_transfer_stub():
+def test_transfer_is_no_longer_stub_and_writes_path_a():
+    """转移已按路径 A 落地：不再是空桩，且必须报出释源。"""
     with TestClient(app) as c:
         h = _login(c)
         books = c.get("/api/bookings", headers=h).json()["items"]
+        assert books
         r = c.post(
             "/api/transfer",
             headers=h,
             json={"booking_id": books[0]["id"], "to_slot_code": "S-PM-02"},
         )
-        assert r.status_code == 200
-        assert r.json()["stub"] is True
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["stub"] is False
+        assert body["path"] == "A_same_transaction_double_write"
+        assert body["source_released"] is True

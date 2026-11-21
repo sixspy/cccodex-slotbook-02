@@ -32,7 +32,21 @@ def list_slots(authorization: AuthHeader = None):
         rows = conn.execute(
             "SELECT * FROM slots ORDER BY start_at, code"
         ).fetchall()
-        return {"items": [dict(r) for r in rows]}
+        return {"items": [_slot_view(conn, r) for r in rows]}
+
+
+def _slot_view(conn, row) -> dict:
+    """盘面同态视图：已订 + 占位中 + 余席，避免只看见目标档虚增。"""
+    open_seats = conn.execute(
+        "SELECT COALESCE(SUM(seats),0) s FROM holds WHERE slot_id=? AND status='占位中'",
+        (row["id"],),
+    ).fetchone()["s"]
+    booked = int(row["booked"])
+    return {
+        **dict(row),
+        "open_hold_seats": int(open_seats),
+        "free_seats": int(row["capacity"]) - booked - int(open_seats),
+    }
 
 
 @router.get("/api/slots/{code}")
@@ -42,7 +56,7 @@ def get_slot(code: str, authorization: AuthHeader = None):
         row = conn.execute("SELECT * FROM slots WHERE code=?", (code,)).fetchone()
         if not row:
             raise HTTPException(404, "档期不存在")
-        return dict(row)
+        return _slot_view(conn, row)
 
 
 @router.post("/api/slots")
